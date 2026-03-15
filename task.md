@@ -2,15 +2,15 @@
 
 ## Phase 1: 專案初始化與基礎建設
 - [x] Create PLAN.md, implementation_plan.md, task.md
-- [ ] Initialize Next.js 15 project (App Router + TypeScript)
-- [ ] Install & configure Tailwind CSS + shadcn/ui
-- [ ] Create Supabase project (DB + Auth + Storage)
-- [ ] Run initial DB migration (001_initial_schema.sql)
-- [ ] Set up environment variables (.env.local)
-- [ ] Create base layout with sidebar navigation
+- [x] Initialize Next.js 15 project (App Router + TypeScript)
+- [x] Install & configure Tailwind CSS + shadcn/ui
+- [x] Create Supabase project (DB + Auth + Storage)
+- [x] Run initial DB migration (001_initial_schema.sql)
+- [x] Set up environment variables (.env.local)
+- [x] Create base layout with sidebar navigation
 - [ ] Create Meta Developer App (App ID + Secret, OAuth redirect URI)
 - [ ] Write Auth architecture planning doc (design only, no implementation)
-- [ ] Initialize Git repo + create feature branch
+- [x] Initialize Git repo + create feature branch
 
 ## Phase 2: 音訊上傳與轉錄
 - [ ] Build upload page (drag & drop + progress bar)
