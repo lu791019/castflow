@@ -1,0 +1,68 @@
+import { createAdminClient } from "@/lib/supabase/admin";
+import { TranscriptViewer } from "@/components/episodes/transcript-viewer";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+export default async function EpisodeDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = createAdminClient();
+
+  const { data: episode } = await supabase
+    .from("episodes")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (!episode) notFound();
+
+  const { data: transcript } = await supabase
+    .from("transcripts")
+    .select("*")
+    .eq("episode_id", id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  const statusLabels: Record<string, string> = {
+    uploaded: "已上傳",
+    transcribing: "轉錄中...",
+    transcribed: "已轉錄",
+    error: "轉錄失敗",
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{episode.title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            狀態：{statusLabels[episode.status] ?? episode.status}
+            {episode.duration_seconds &&
+              ` · ${Math.round(episode.duration_seconds / 60)} 分鐘`}
+          </p>
+        </div>
+        {episode.status === "transcribed" && (
+          <Link href={`/episodes/${id}/generate`}>
+            <Button>生成文案</Button>
+          </Link>
+        )}
+      </div>
+
+      <div className="mt-8">
+        <h2 className="mb-4 text-lg font-semibold">逐字稿</h2>
+        {transcript ? (
+          <TranscriptViewer segments={transcript.segments ?? []} />
+        ) : (
+          <p className="text-muted-foreground">
+            {episode.status === "transcribing" ? "轉錄進行中，請稍候..." : "尚無轉錄稿。"}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}

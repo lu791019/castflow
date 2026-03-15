@@ -13,15 +13,15 @@
 - [x] Initialize Git repo + create feature branch
 
 ## Phase 2: 音訊上傳與轉錄
-- [ ] Build upload page (drag & drop + progress bar)
-- [ ] Integrate ffmpeg.wasm for browser-side audio compression (64kbps mono)
-- [ ] Integrate Supabase Storage (compressed audio upload)
-- [ ] Create `/api/transcribe` route (Whisper API, auto-chunk if >25MB)
-- [ ] Store transcription results in `transcripts` table
-- [ ] Build transcript viewer page (with timestamps)
+- [x] Build upload page (drag & drop + progress bar)
+- [x] Integrate ffmpeg.wasm for browser-side audio compression (64kbps mono)
+- [x] Integrate Supabase Storage (compressed audio upload)
+- [x] Create `/api/transcribe` route (Whisper API, auto-chunk if >25MB)
+- [x] Store transcription results in `transcripts` table
+- [x] Build transcript viewer page (with timestamps)
 - [ ] Set up Supabase Realtime for status updates
-- [ ] Build episodes list page
-- [ ] Build episode detail page
+- [x] Build episodes list page
+- [x] Build episode detail page
 
 ## Phase 3: AI 文案生成（簡化版）
 - [ ] Build prompt assembly logic (transcript + fixed prompt → per-platform)

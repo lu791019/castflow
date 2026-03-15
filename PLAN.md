@@ -173,13 +173,13 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 - [ ] Meta Developer App 建立（取得 App ID + Secret，設定 OAuth redirect）
 - [ ] Auth 架構規劃文件（暫不實作，產出設計文件供未來開發）
 
-### Phase 2：音訊上傳與轉錄 🔲
-- [ ] 音訊上傳頁面（拖拉上傳 + 進度條）
-- [ ] 瀏覽器端 ffmpeg.wasm 音訊壓縮（64kbps mono，確保 ≤25MB）
-- [ ] Supabase Storage 整合
-- [ ] Whisper API 串接（API Route，含超過 25MB 自動分段）
-- [ ] 轉錄結果存入 DB
-- [ ] 轉錄稿檢視頁面（帶時間軸）
+### Phase 2：音訊上傳與轉錄 🔲 (Realtime 待補)
+- [x] 音訊上傳頁面（拖拉上傳 + 進度條）
+- [x] 瀏覽器端 ffmpeg.wasm 音訊壓縮（64kbps mono，確保 ≤25MB）
+- [x] Supabase Storage 整合
+- [x] Whisper API 串接（API Route，含超過 25MB 自動分段）
+- [x] 轉錄結果存入 DB
+- [x] 轉錄稿檢視頁面（帶時間軸）
 - [ ] 即時狀態更新（Supabase Realtime）
 
 ### Phase 3：AI 文案生成（簡化版）🔲
