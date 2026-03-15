@@ -165,11 +165,11 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 
 ## §8 實作階段
 
-### Phase 1：專案初始化與基礎建設 🔲
-- [ ] Next.js 15 專案初始化（App Router + Tailwind + shadcn/ui）
-- [ ] Supabase 專案建立（DB + Auth + Storage）
-- [ ] 資料庫 schema 建立（全部 tables）
-- [ ] 基礎 layout 與路由結構
+### Phase 1：專案初始化與基礎建設 ✅
+- [x] Next.js 15 專案初始化（App Router + Tailwind + shadcn/ui）
+- [x] Supabase 專案建立（DB + Auth + Storage）
+- [x] 資料庫 schema 建立（全部 tables）
+- [x] 基礎 layout 與路由結構
 - [ ] Meta Developer App 建立（取得 App ID + Secret，設定 OAuth redirect）
 - [ ] Auth 架構規劃文件（暫不實作，產出設計文件供未來開發）
 
