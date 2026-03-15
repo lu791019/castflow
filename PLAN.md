@@ -43,11 +43,12 @@ Supabase (PostgreSQL + Auth + Realtime)
 | 後端 | Next.js API Routes | MVP 不需獨立後端 |
 | DB + Auth | Supabase | PostgreSQL + Auth + Storage 一站式 |
 | 音訊儲存 | Supabase Storage | 直接上傳，省去 S3 設定 |
-| 轉錄 | OpenAI Whisper API | 品質最佳，支援中英文 |
+| 音訊壓縮 | ffmpeg.wasm（瀏覽器端） | 壓縮至 64kbps mono，確保 ≤25MB 送 Whisper |
+| 轉錄 | OpenAI Whisper API | 品質最佳，支援中英文，單檔限 25MB |
 | 文案生成 | OpenAI GPT-4o | 成本/品質平衡 |
 | 排程發布 | Meta Graph API + Threads API | Threads + FB 直發 |
 | 部署 | Vercel | Next.js 原生整合 |
-| 背景任務 | Vercel Cron + Supabase Edge Functions | 排程觸發 |
+| 背景任務 | Supabase pg_cron + Edge Functions | 分鐘級排程，免費方案即可 |
 
 ---
 
@@ -112,7 +113,7 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 
 | 功能 | 說明 |
 |------|------|
-| 音訊上傳 | MP3/WAV/M4A/AAC，≤200MB |
+| 音訊上傳 | MP3/WAV/M4A/AAC，≤200MB，瀏覽器端 ffmpeg.wasm 壓縮至 ≤25MB |
 | AI 轉錄 | Whisper API，帶時間軸 + 講者標籤 |
 | AI 文案生成 | 6 平台：Threads、FB、IG、LinkedIn、Blog、Newsletter |
 | 風格 DNA 提取 | 貼入範例 + 互動數據 → AI 提取 7 維度 |
@@ -128,6 +129,7 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 - 數據分析儀表板
 - 付費/訂閱系統
 - Mobile app
+- 完整用戶認證系統（Auth 先規劃，不實作）
 
 ---
 
@@ -144,7 +146,7 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 /styles                  → 風格管理
 /styles/new              → 建立新風格（貼入範例 → 提取 DNA）
 /styles/[id]             → 查看/編輯風格 DNA
-/settings                → Meta 帳號連結、偏好設定
+/settings                → Meta 帳號連結、連線狀態、Token 管理、設定指南
 ```
 
 ---
@@ -168,39 +170,43 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 - [ ] Supabase 專案建立（DB + Auth + Storage）
 - [ ] 資料庫 schema 建立（全部 tables）
 - [ ] 基礎 layout 與路由結構
-- [ ] Supabase Auth 整合（登入/登出）
+- [ ] Meta Developer App 建立（取得 App ID + Secret，設定 OAuth redirect）
+- [ ] Auth 架構規劃文件（暫不實作，產出設計文件供未來開發）
 
 ### Phase 2：音訊上傳與轉錄 🔲
 - [ ] 音訊上傳頁面（拖拉上傳 + 進度條）
+- [ ] 瀏覽器端 ffmpeg.wasm 音訊壓縮（64kbps mono，確保 ≤25MB）
 - [ ] Supabase Storage 整合
-- [ ] Whisper API 串接（API Route）
+- [ ] Whisper API 串接（API Route，含超過 25MB 自動分段）
 - [ ] 轉錄結果存入 DB
 - [ ] 轉錄稿檢視頁面（帶時間軸）
 - [ ] 即時狀態更新（Supabase Realtime）
 
-### Phase 3：風格 DNA 系統 🔲
-- [ ] 風格管理頁面（CRUD）
-- [ ] 範例匯入介面（貼入文案 + 互動數據）
-- [ ] 風格 DNA 提取 API（GPT-4o 7 維度分析）
-- [ ] DNA 檢視/編輯介面
-- [ ] 3 個預設平台模板（Threads / FB / 通用）
-
-### Phase 4：AI 文案生成 🔲
-- [ ] 文案生成 API Route（逐字稿 + DNA + 規則 → 6 平台文案）
+### Phase 3：AI 文案生成（簡化版）🔲
+- [ ] 文案生成 API Route（逐字稿 + 固定 prompt → 6 平台文案）
 - [ ] 生成結果存入 contents 表
 - [ ] 內容編輯器（6 平台 tab）
 - [ ] 即時字數計數 + 平台限制提醒
 - [ ] 單平台重新生成功能
 - [ ] 一鍵複製文案功能
 
-### Phase 5：排程發布（Threads + FB）🔲
-- [ ] Meta Developer App 設定
+### Phase 4：排程發布（Threads + FB）🔲
+- [ ] Meta OAuth 串接（連結 FB Page + Threads）
 - [ ] Meta Graph API 串接（FB Page 發布）
 - [ ] Threads API 串接
 - [ ] 排程選擇 UI（日期時間選擇器）
-- [ ] Vercel Cron 排程觸發器
+- [ ] Supabase pg_cron 排程觸發器
 - [ ] 發布狀態追蹤 + 錯誤處理
 - [ ] 排程行事曆頁面
+- [ ] Settings 頁面（Meta 帳號連結狀態 + Token 到期提醒 + 設定指南）
+
+### Phase 5：風格 DNA 系統 🔲
+- [ ] 風格管理頁面（CRUD）
+- [ ] 範例匯入介面（貼入文案 + 互動數據）
+- [ ] 風格 DNA 提取 API（GPT-4o 7 維度分析）
+- [ ] DNA 檢視/編輯介面
+- [ ] 3 個預設平台模板（Threads / FB / 通用）
+- [ ] 文案生成 API 整合風格 DNA（升級 Phase 3 的固定 prompt）
 
 ### Phase 6：Dashboard 與整合 🔲
 - [ ] Dashboard 頁面（最近集數 + 本週排程）
@@ -219,6 +225,11 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 | 2026-03-13 | 風格系統沿用 dex-agent-os 多層架構 | 已在真實場景驗證，數據驅動 |
 | 2026-03-13 | 圖片由用戶手動上傳，不做 AI 生圖 | MVP 簡化，聚焦核心流程 |
 | 2026-03-13 | GPT-4o 為主力 LLM | 成本低、速度快，MVP 足夠 |
+| 2026-03-15 | 風格 DNA 系統移至 Phase 5 | 先跑通基本流程（上傳→轉錄→生成→發布），再疊加風格系統 |
+| 2026-03-15 | 排程改用 Supabase pg_cron | Vercel Hobby Cron 最小間隔每天一次，不足以支援分鐘級排程 |
+| 2026-03-15 | 音訊壓縮用瀏覽器端 ffmpeg.wasm | Whisper API 限 25MB，避免 Vercel serverless 限制 |
+| 2026-03-15 | Auth 先規劃不實作 | MVP 個人使用，先跑通核心流程 |
+| 2026-03-15 | Meta Developer App 在 Phase 1 建立 | 避免 Phase 4 才發現前置作業未完成 |
 
 ---
 
@@ -231,3 +242,4 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 - 團隊協作 + 客戶管理（代操場景）
 - 付費訂閱系統
 - Mobile app
+- 完整用戶認證系統（Supabase Auth）

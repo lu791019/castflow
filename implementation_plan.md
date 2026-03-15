@@ -13,10 +13,14 @@
 > - LLM：OpenAI Whisper API（轉錄）+ GPT-4o（文案生成）
 > - 發布 API：Meta Graph API（FB）+ Threads API
 > - 部署：Vercel
-> - 風格系統：沿用 dex-agent-os 多層架構（模板→規則→DNA→範例）
+> - 風格系統：沿用 dex-agent-os 多層架構（模板→規則→DNA→範例），移至 Phase 5
 > - 文案生成 6 平台（Threads/FB/IG/LinkedIn/Blog/Newsletter），排程直發只做 Threads + FB
 > - 圖片由用戶手動上傳，不做 AI 生圖
 > - MVP 為個人使用，不做多用戶/團隊/付費功能
+> - Auth 先規劃不實作，MVP 先跑通核心流程
+> - 音訊壓縮使用瀏覽器端 ffmpeg.wasm（64kbps mono，Whisper API 限 25MB）
+> - 排程使用 Supabase pg_cron（取代 Vercel Cron，支援分鐘級觸發）
+> - Phase 順序調整：P1 初始化 → P2 音訊轉錄 → P3 文案生成（簡化版）→ P4 排程發布 → P5 風格 DNA → P6 整合
 
 ## Proposed Changes
 
@@ -28,7 +32,7 @@ social-media-product/
 │   ├── app/                          # Next.js App Router
 │   │   ├── layout.tsx                # 根 layout
 │   │   ├── page.tsx                  # Dashboard
-│   │   ├── (auth)/
+│   │   ├── (auth)/                  # [DEFERRED] Auth 先規劃，MVP 不實作
 │   │   │   ├── login/page.tsx
 │   │   │   └── callback/route.ts     # Supabase Auth callback
 │   │   ├── episodes/
@@ -45,7 +49,7 @@ social-media-product/
 │   │   │   ├── new/page.tsx          # 建立新風格
 │   │   │   └── [id]/page.tsx         # 檢視/編輯風格 DNA
 │   │   ├── settings/
-│   │   │   └── page.tsx              # 設定（Meta 帳號連結）
+│   │   │   └── page.tsx              # 設定（Meta 連結狀態 + Token 管理 + 設定指南）
 │   │   └── api/
 │   │       ├── upload/route.ts       # 音訊上傳
 │   │       ├── transcribe/route.ts   # Whisper 轉錄
@@ -53,7 +57,7 @@ social-media-product/
 │   │       ├── extract-style/route.ts # 風格 DNA 提取
 │   │       ├── publish/route.ts      # 手動發布
 │   │       ├── schedule/route.ts     # 排程管理
-│   │       ├── cron/publish/route.ts # Cron 觸發排程發布
+│   │       ├── cron/publish/route.ts # pg_cron 觸發排程發布
 │   │       └── auth/
 │   │           ├── meta/route.ts     # Meta OAuth
 │   │           └── callback/route.ts # Meta OAuth callback
@@ -133,7 +137,7 @@ social-media-product/
   風格 DNA 提取，接收範例文案 → 回傳 7 維度分析結果
 
 - `[NEW] src/app/api/cron/publish/route.ts`
-  Vercel Cron 觸發，掃描到期排程 → 呼叫 Meta API 發布
+  Supabase pg_cron 觸發，掃描到期排程 → 呼叫 Meta API 發布
 
 - `[NEW] src/lib/openai/whisper.ts`
   Whisper API 封裝，處理音訊轉錄
@@ -161,6 +165,9 @@ social-media-product/
 
 - `[NEW] src/components/styles/dna-viewer.tsx`
   風格 DNA 7 維度視覺化檢視器
+
+- `[NEW] src/app/settings/page.tsx`
+  Settings 頁面：Meta 帳號連結狀態 Dashboard、Token 到期提醒、重新授權按鈕、折疊式設定指南
 
 - `[NEW] supabase/migrations/001_initial_schema.sql`
   完整資料庫 schema（8 張表）
