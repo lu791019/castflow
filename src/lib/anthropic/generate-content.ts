@@ -4,12 +4,13 @@ import {
   buildMultiPlatformPrompt,
   buildSinglePlatformPrompt,
 } from "@/lib/prompts/generate-content";
-import { Platform } from "@/lib/types";
+import { Platform, StyleDimensions } from "@/lib/types";
 
 export async function generateAllPlatforms(
   transcript: string,
+  styleDna?: StyleDimensions,
 ): Promise<Record<Platform, string>> {
-  const prompt = `${buildSystemPrompt()}\n\n${buildMultiPlatformPrompt(transcript)}`;
+  const prompt = `${buildSystemPrompt()}\n\n${buildMultiPlatformPrompt(transcript, styleDna)}`;
   const text = await runClaudePrint(prompt);
 
   // Extract JSON from response (handles possible markdown code blocks)
@@ -41,7 +42,8 @@ export async function generateAllPlatforms(
 export async function generateSinglePlatform(
   transcript: string,
   platform: Platform,
+  styleDna?: StyleDimensions,
 ): Promise<string> {
-  const prompt = `${buildSystemPrompt()}\n\n${buildSinglePlatformPrompt(transcript, platform)}`;
+  const prompt = `${buildSystemPrompt()}\n\n${buildSinglePlatformPrompt(transcript, platform, styleDna)}`;
   return runClaudePrint(prompt);
 }

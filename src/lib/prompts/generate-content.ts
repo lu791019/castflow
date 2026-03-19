@@ -1,4 +1,4 @@
-import { Platform } from "@/lib/types";
+import { Platform, StyleDimensions } from "@/lib/types";
 
 interface PlatformSpec {
   name: string;
@@ -65,7 +65,25 @@ export function buildSystemPrompt(): string {
 - 每個平台的內容應該獨立完整，不互相依賴`;
 }
 
-export function buildMultiPlatformPrompt(transcript: string): string {
+function buildStyleSection(styleDna?: StyleDimensions): string {
+  if (!styleDna) return "";
+
+  return `
+## 風格 DNA（請嚴格遵循以下風格模式）
+- 結構模式：${styleDna.structure_pattern}
+- 開場 Hook：${styleDna.hook_pattern}
+- 語氣特徵：${styleDna.tone_features}
+- CTA / 收尾：${styleDna.cta_pattern}
+- 格式規範：${styleDna.format_specs}
+- 高互動特徵：${styleDna.high_engagement_features}
+- 禁忌：${styleDna.taboos}
+`;
+}
+
+export function buildMultiPlatformPrompt(
+  transcript: string,
+  styleDna?: StyleDimensions,
+): string {
   const platformSection = ALL_PLATFORMS.map((p) => {
     const spec = PLATFORM_SPECS[p];
     return `${spec.name}：${spec.guidelines}`;
@@ -75,7 +93,7 @@ export function buildMultiPlatformPrompt(transcript: string): string {
 
 ## 逐字稿
 ${transcript}
-
+${buildStyleSection(styleDna)}
 ## 各平台規範
 ${platformSection}
 
@@ -98,6 +116,7 @@ ${platformSection}
 export function buildSinglePlatformPrompt(
   transcript: string,
   platform: Platform,
+  styleDna?: StyleDimensions,
 ): string {
   const spec = PLATFORM_SPECS[platform];
 
@@ -105,7 +124,7 @@ export function buildSinglePlatformPrompt(
 
 ## 逐字稿
 ${transcript}
-
+${buildStyleSection(styleDna)}
 ## ${spec.name} 平台規範
 ${spec.guidelines}
 

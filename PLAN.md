@@ -200,13 +200,13 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 - [x] 發布 API（/api/publish + /api/publish-scheduled）
 - [ ] Supabase pg_cron 排程觸發器（需部署後設定）
 
-### Phase 5：風格 DNA 系統 🔲
-- [ ] 風格管理頁面（CRUD）
-- [ ] 範例匯入介面（貼入文案 + 互動數據）
-- [ ] 風格 DNA 提取 API（GPT-4o 7 維度分析）
-- [ ] DNA 檢視/編輯介面
-- [ ] 3 個預設平台模板（Threads / FB / 通用）
-- [ ] 文案生成 API 整合風格 DNA（升級 Phase 3 的固定 prompt）
+### Phase 5：風格 DNA 系統 ✅
+- [x] 風格管理頁面（CRUD：列表 + 新增 + 檢視/編輯 + 刪除）
+- [x] 範例匯入介面（貼入文案 + 互動數據，最少 3 篇）
+- [x] 風格 DNA 提取（claude --print 7 維度分析）
+- [x] DNA 檢視/編輯介面（7 維度各自可編輯）
+- [x] 文案生成整合 Style DNA（prompt 注入風格模式）
+- [ ] 3 個預設平台模板（seed data，optional）
 
 ### Phase 6：Dashboard 與整合 🔲
 - [ ] Dashboard 頁面（最近集數 + 本週排程）

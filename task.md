@@ -46,14 +46,14 @@
 - [ ] Create Meta Developer App + get tokens for testing
 
 ## Phase 5: 風格 DNA 系統
-- [ ] Build styles list page (CRUD)
-- [ ] Build example import UI (paste posts + engagement data)
-- [ ] Create `/api/extract-style` route (GPT-4o 7-dimension analysis)
-- [ ] Build DNA viewer/editor component
-- [ ] Create 3 default platform templates (Threads / FB / General)
-- [ ] Build writing rules management (global + per-platform)
-- [ ] Build create new style page (full flow: examples → extract → review)
-- [ ] Upgrade `/api/generate` to integrate Style DNA (replace fixed prompts)
+- [x] Build styles list page (CRUD)
+- [x] Build example import UI (paste posts + engagement data)
+- [x] Create style extraction logic (claude --print 7-dimension analysis)
+- [x] Build DNA viewer/editor component
+- [x] Build create new style page (full flow: examples → extract → review)
+- [x] Upgrade `/api/generate` to integrate Style DNA (replace fixed prompts)
+- [ ] Create 3 default platform templates (Threads / FB / General) — seed data
+- [ ] Build writing rules management (global + per-platform) — optional
 
 ## Phase 6: Dashboard 與整合
 - [ ] Build Dashboard page (recent episodes + weekly schedule)
