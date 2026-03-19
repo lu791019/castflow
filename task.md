@@ -24,13 +24,13 @@
 - [x] Build episode detail page
 
 ## Phase 3: AI 文案生成（簡化版）
-- [ ] Build prompt assembly logic (transcript + fixed prompt → per-platform)
-- [ ] Create `/api/generate` route (GPT-4o, 6 platforms in one call)
-- [ ] Store generated content in `contents` table
-- [ ] Build content editor with 6 platform tabs
-- [ ] Implement real-time character count + platform limit warnings
-- [ ] Build single-platform regeneration feature
-- [ ] Build one-click copy feature (for IG/LinkedIn/Blog/Newsletter)
+- [x] Build prompt assembly logic (transcript + fixed prompt → per-platform)
+- [x] Create `/api/generate` route (Claude API, 6 platforms in one call)
+- [x] Store generated content in `contents` table
+- [x] Build content editor with 6 platform tabs
+- [x] Implement real-time character count + platform limit warnings
+- [x] Build single-platform regeneration feature
+- [x] Build one-click copy feature (for IG/LinkedIn/Blog/Newsletter)
 
 ## Phase 4: 排程發布 (Threads + FB)
 - [ ] Implement Meta OAuth flow (connect FB Page + Threads)

@@ -182,13 +182,13 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 - [x] 轉錄稿檢視頁面（帶時間軸）
 - [ ] 即時狀態更新（Supabase Realtime）
 
-### Phase 3：AI 文案生成（簡化版）🔲
-- [ ] 文案生成 API Route（逐字稿 + 固定 prompt → 6 平台文案）
-- [ ] 生成結果存入 contents 表
-- [ ] 內容編輯器（6 平台 tab）
-- [ ] 即時字數計數 + 平台限制提醒
-- [ ] 單平台重新生成功能
-- [ ] 一鍵複製文案功能
+### Phase 3：AI 文案生成（簡化版）✅
+- [x] 文案生成 API Route（Claude API + 固定 prompt → 6 平台文案）
+- [x] 生成結果存入 contents 表
+- [x] 內容編輯器（6 平台 tab）
+- [x] 即時字數計數 + 平台限制提醒
+- [x] 單平台重新生成功能
+- [x] 一鍵複製文案功能
 
 ### Phase 4：排程發布（Threads + FB）🔲
 - [ ] Meta OAuth 串接（連結 FB Page + Threads）

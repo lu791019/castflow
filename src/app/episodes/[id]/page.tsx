@@ -20,13 +20,19 @@ export default async function EpisodeDetailPage({
 
   if (!episode) notFound();
 
-  const { data: transcript } = await supabase
-    .from("transcripts")
-    .select("*")
-    .eq("episode_id", id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+  const [{ data: transcript }, { count: contentCount }] = await Promise.all([
+    supabase
+      .from("transcripts")
+      .select("*")
+      .eq("episode_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single(),
+    supabase
+      .from("contents")
+      .select("*", { count: "exact", head: true })
+      .eq("episode_id", id),
+  ]);
 
   const statusLabels: Record<string, string> = {
     uploaded: "已上傳",
@@ -46,11 +52,18 @@ export default async function EpisodeDetailPage({
               ` · ${Math.round(episode.duration_seconds / 60)} 分鐘`}
           </p>
         </div>
-        {episode.status === "transcribed" && (
-          <Link href={`/episodes/${id}/generate`}>
-            <Button>生成文案</Button>
-          </Link>
-        )}
+        <div className="flex gap-2">
+          {episode.status === "transcribed" && (
+            <Link href={`/episodes/${id}/generate`}>
+              <Button>生成文案</Button>
+            </Link>
+          )}
+          {(contentCount ?? 0) > 0 && (
+            <Link href={`/episodes/${id}/edit`}>
+              <Button variant="outline">編輯文案 ({contentCount ?? 0})</Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="mt-8">
