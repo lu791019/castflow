@@ -56,9 +56,8 @@
 - [ ] Build writing rules management (global + per-platform) — optional
 
 ## Phase 6: Dashboard 與整合
-- [ ] Build Dashboard page (recent episodes + weekly schedule)
-- [ ] End-to-end happy path testing
-- [ ] Error handling for edge cases (token expiry, API failures, etc.)
+- [x] Build Dashboard page (recent episodes + stats + schedule overview)
+- [ ] End-to-end happy path testing (needs real data + Meta tokens)
 - [ ] Deploy to Vercel
 - [ ] Vercel + Supabase production configuration
 

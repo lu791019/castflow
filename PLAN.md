@@ -208,10 +208,10 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 - [x] 文案生成整合 Style DNA（prompt 注入風格模式）
 - [ ] 3 個預設平台模板（seed data，optional）
 
-### Phase 6：Dashboard 與整合 🔲
-- [ ] Dashboard 頁面（最近集數 + 本週排程）
-- [ ] 完整 Happy Path 端到端測試
-- [ ] 錯誤處理與邊界情境
+### Phase 6：Dashboard 與整合 ✅
+- [x] Dashboard 頁面（統計數據 + 最近集數 + 排程概覽）
+- [ ] 完整 Happy Path 端到端測試（需真實資料）
+- [ ] 部署到 Vercel
 - [ ] 部署到 Vercel
 
 ---
