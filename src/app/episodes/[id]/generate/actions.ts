@@ -116,3 +116,35 @@ export async function updateContentAction(contentId: string, body: string) {
 
   return { success: true };
 }
+
+export async function scheduleContentAction(
+  contentId: string,
+  scheduledAt: string,
+) {
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from("contents")
+    .update({ status: "scheduled", scheduled_at: scheduledAt })
+    .eq("id", contentId);
+
+  if (error) return { error: "排程設定失敗" };
+  return { success: true };
+}
+
+export async function publishNowAction(contentId: string) {
+  const { publishContent } = await import("@/lib/meta/publish");
+  return publishContent(contentId);
+}
+
+export async function cancelScheduleAction(contentId: string) {
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from("contents")
+    .update({ status: "draft", scheduled_at: null })
+    .eq("id", contentId);
+
+  if (error) return { error: "取消排程失敗" };
+  return { success: true };
+}

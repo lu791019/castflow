@@ -33,15 +33,17 @@
 - [x] Build one-click copy feature (for IG/LinkedIn/Blog/Newsletter)
 
 ## Phase 4: 排程發布 (Threads + FB)
-- [ ] Implement Meta OAuth flow (connect FB Page + Threads)
-- [ ] Build Facebook Graph API integration (Page post publishing)
-- [ ] Build Threads API integration
-- [ ] Build schedule picker UI (date + time selector)
-- [ ] Set up Supabase pg_cron for scheduled publishing
-- [ ] Implement publish status tracking (draft → scheduled → published → failed)
-- [ ] Build error handling + manual retry
-- [ ] Build schedule calendar page (month + list view)
-- [ ] Build Settings page (Meta connection status + Token expiry alerts + setup guide)
+- [x] Build Settings page (Meta token 手動輸入 + 驗證 + 連結狀態 + 設定指南)
+- [x] Build Facebook Graph API integration (Page post publishing)
+- [x] Build Threads API integration
+- [x] Build schedule picker UI (datetime-local selector in content editor)
+- [x] Implement publish status tracking (draft → scheduled → published → failed)
+- [x] Build error handling + manual retry
+- [x] Build schedule calendar page (list view grouped by date)
+- [x] Build publish API routes (/api/publish + /api/publish-scheduled)
+- [ ] Set up Supabase pg_cron for scheduled publishing (需部署後設定)
+- [ ] Run migration 002_settings.sql in Supabase Dashboard
+- [ ] Create Meta Developer App + get tokens for testing
 
 ## Phase 5: 風格 DNA 系統
 - [ ] Build styles list page (CRUD)

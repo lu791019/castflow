@@ -190,15 +190,15 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 - [x] 單平台重新生成功能
 - [x] 一鍵複製文案功能
 
-### Phase 4：排程發布（Threads + FB）🔲
-- [ ] Meta OAuth 串接（連結 FB Page + Threads）
-- [ ] Meta Graph API 串接（FB Page 發布）
-- [ ] Threads API 串接
-- [ ] 排程選擇 UI（日期時間選擇器）
-- [ ] Supabase pg_cron 排程觸發器
-- [ ] 發布狀態追蹤 + 錯誤處理
-- [ ] 排程行事曆頁面
-- [ ] Settings 頁面（Meta 帳號連結狀態 + Token 到期提醒 + 設定指南）
+### Phase 4：排程發布（Threads + FB）✅（pg_cron 待部署後設定）
+- [x] Settings 頁面（Meta Token 手動輸入 + 驗證 + 連結狀態 + 設定指南）
+- [x] Meta Graph API 串接（FB Page 發布）
+- [x] Threads API 串接（雙步驟：建立容器 → 發布）
+- [x] 排程選擇 UI（日期時間選擇器，整合於內容編輯器）
+- [x] 發布狀態追蹤（draft → scheduled → published → failed）+ 錯誤重試
+- [x] 排程行事曆頁面（列表視圖，按日期分組）
+- [x] 發布 API（/api/publish + /api/publish-scheduled）
+- [ ] Supabase pg_cron 排程觸發器（需部署後設定）
 
 ### Phase 5：風格 DNA 系統 🔲
 - [ ] 風格管理頁面（CRUD）
