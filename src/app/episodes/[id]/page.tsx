@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { TranscriptViewer } from "@/components/episodes/transcript-viewer";
+import { TranscriptionTrigger } from "@/components/episodes/transcription-trigger";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -71,9 +72,7 @@ export default async function EpisodeDetailPage({
         {transcript ? (
           <TranscriptViewer segments={transcript.segments ?? []} />
         ) : (
-          <p className="text-muted-foreground">
-            {episode.status === "transcribing" ? "轉錄進行中，請稍候..." : "尚無轉錄稿。"}
-          </p>
+          <TranscriptionTrigger episodeId={episode.id} status={episode.status} />
         )}
       </div>
     </div>
