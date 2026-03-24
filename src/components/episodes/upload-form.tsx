@@ -54,7 +54,8 @@ export function UploadForm() {
       // 2. Upload to Supabase Storage
       setStage("uploading");
       setProgress(0);
-      const filePath = `episodes/${Date.now()}-${compressed.name}`;
+      const safeName = compressed.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filePath = `episodes/${Date.now()}-${safeName}`;
       const { error: uploadError } = await supabase.storage
         .from("audio")
         .upload(filePath, compressed);
