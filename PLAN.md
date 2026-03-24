@@ -165,53 +165,53 @@ Layer 1: 平台模板 — 最小結構框架 + system prompt
 
 ## §8 實作階段
 
-### Phase 1：專案初始化與基礎建設 🔲
-- [ ] Next.js 15 專案初始化（App Router + Tailwind + shadcn/ui）
-- [ ] Supabase 專案建立（DB + Auth + Storage）
-- [ ] 資料庫 schema 建立（全部 tables）
-- [ ] 基礎 layout 與路由結構
+### Phase 1：專案初始化與基礎建設 ✅
+- [x] Next.js 15 專案初始化（App Router + Tailwind + shadcn/ui）
+- [x] Supabase 專案建立（DB + Auth + Storage）
+- [x] 資料庫 schema 建立（全部 tables）
+- [x] 基礎 layout 與路由結構
 - [ ] Meta Developer App 建立（取得 App ID + Secret，設定 OAuth redirect）
 - [ ] Auth 架構規劃文件（暫不實作，產出設計文件供未來開發）
 
-### Phase 2：音訊上傳與轉錄 🔲
-- [ ] 音訊上傳頁面（拖拉上傳 + 進度條）
-- [ ] 瀏覽器端 ffmpeg.wasm 音訊壓縮（64kbps mono，確保 ≤25MB）
-- [ ] Supabase Storage 整合
-- [ ] Whisper API 串接（API Route，含超過 25MB 自動分段）
-- [ ] 轉錄結果存入 DB
-- [ ] 轉錄稿檢視頁面（帶時間軸）
+### Phase 2：音訊上傳與轉錄 🔲 (Realtime 待補)
+- [x] 音訊上傳頁面（拖拉上傳 + 進度條）
+- [x] 瀏覽器端 ffmpeg.wasm 音訊壓縮（64kbps mono，確保 ≤25MB）
+- [x] Supabase Storage 整合
+- [x] Whisper API 串接（API Route，含超過 25MB 自動分段）
+- [x] 轉錄結果存入 DB
+- [x] 轉錄稿檢視頁面（帶時間軸）
 - [ ] 即時狀態更新（Supabase Realtime）
 
-### Phase 3：AI 文案生成（簡化版）🔲
-- [ ] 文案生成 API Route（逐字稿 + 固定 prompt → 6 平台文案）
-- [ ] 生成結果存入 contents 表
-- [ ] 內容編輯器（6 平台 tab）
-- [ ] 即時字數計數 + 平台限制提醒
-- [ ] 單平台重新生成功能
-- [ ] 一鍵複製文案功能
+### Phase 3：AI 文案生成（簡化版）✅
+- [x] 文案生成 API Route（Claude API + 固定 prompt → 6 平台文案）
+- [x] 生成結果存入 contents 表
+- [x] 內容編輯器（6 平台 tab）
+- [x] 即時字數計數 + 平台限制提醒
+- [x] 單平台重新生成功能
+- [x] 一鍵複製文案功能
 
-### Phase 4：排程發布（Threads + FB）🔲
-- [ ] Meta OAuth 串接（連結 FB Page + Threads）
-- [ ] Meta Graph API 串接（FB Page 發布）
-- [ ] Threads API 串接
-- [ ] 排程選擇 UI（日期時間選擇器）
-- [ ] Supabase pg_cron 排程觸發器
-- [ ] 發布狀態追蹤 + 錯誤處理
-- [ ] 排程行事曆頁面
-- [ ] Settings 頁面（Meta 帳號連結狀態 + Token 到期提醒 + 設定指南）
+### Phase 4：排程發布（Threads + FB）✅（pg_cron 待部署後設定）
+- [x] Settings 頁面（Meta Token 手動輸入 + 驗證 + 連結狀態 + 設定指南）
+- [x] Meta Graph API 串接（FB Page 發布）
+- [x] Threads API 串接（雙步驟：建立容器 → 發布）
+- [x] 排程選擇 UI（日期時間選擇器，整合於內容編輯器）
+- [x] 發布狀態追蹤（draft → scheduled → published → failed）+ 錯誤重試
+- [x] 排程行事曆頁面（列表視圖，按日期分組）
+- [x] 發布 API（/api/publish + /api/publish-scheduled）
+- [ ] Supabase pg_cron 排程觸發器（需部署後設定）
 
-### Phase 5：風格 DNA 系統 🔲
-- [ ] 風格管理頁面（CRUD）
-- [ ] 範例匯入介面（貼入文案 + 互動數據）
-- [ ] 風格 DNA 提取 API（GPT-4o 7 維度分析）
-- [ ] DNA 檢視/編輯介面
-- [ ] 3 個預設平台模板（Threads / FB / 通用）
-- [ ] 文案生成 API 整合風格 DNA（升級 Phase 3 的固定 prompt）
+### Phase 5：風格 DNA 系統 ✅
+- [x] 風格管理頁面（CRUD：列表 + 新增 + 檢視/編輯 + 刪除）
+- [x] 範例匯入介面（貼入文案 + 互動數據，最少 3 篇）
+- [x] 風格 DNA 提取（claude --print 7 維度分析）
+- [x] DNA 檢視/編輯介面（7 維度各自可編輯）
+- [x] 文案生成整合 Style DNA（prompt 注入風格模式）
+- [ ] 3 個預設平台模板（seed data，optional）
 
-### Phase 6：Dashboard 與整合 🔲
-- [ ] Dashboard 頁面（最近集數 + 本週排程）
-- [ ] 完整 Happy Path 端到端測試
-- [ ] 錯誤處理與邊界情境
+### Phase 6：Dashboard 與整合 ✅
+- [x] Dashboard 頁面（統計數據 + 最近集數 + 排程概覽）
+- [ ] 完整 Happy Path 端到端測試（需真實資料）
+- [ ] 部署到 Vercel
 - [ ] 部署到 Vercel
 
 ---
