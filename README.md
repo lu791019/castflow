@@ -57,7 +57,7 @@
 | 音訊儲存 | Supabase Storage | 直接上傳，免設定 S3 |
 | 音訊壓縮 | ffmpeg.wasm（瀏覽器端） | 壓至 64kbps mono 16kHz，確保 ≤25MB |
 | 轉錄 | Groq Whisper API (whisper-large-v3-turbo) | 速度極快，免費額度足夠 |
-| 文案生成 | `claude --print` CLI | 走 Claude Pro/Max 額度，零 API 費用 |
+| 文案生成 | Claude CLI 或 Anthropic API（雙模式） | CLI 走 Pro/Max 額度零費用；API 適用 Vercel 部署 |
 | 排程發布 | Meta Graph API + Threads API | Threads + FB 直發 |
 | 排程觸發 | Supabase pg_cron | 分鐘級排程，免費方案即可 |
 | 部署 | Vercel | Next.js 原生整合 |
@@ -72,7 +72,7 @@
    上傳完成自動觸發 → 從 Storage 取得音訊 → Groq Whisper 轉錄 → 存入 transcripts 表（含逐段時間軸）
 
 3. AI 文案生成
-   選擇集數 + 風格（可選）→ claude --print 根據逐字稿 + 風格 DNA 生成 6 平台文案 → 存入 contents 表
+   選擇集數 + 風格（可選）→ Claude CLI 或 API 根據逐字稿 + 風格 DNA 生成 6 平台文案 → 存入 contents 表
 
 4. 編輯與發布
    6 平台 Tab 檢視/編輯 → 設定排程時間或立即發布 → Meta API 發送至 Threads / Facebook
@@ -158,6 +158,12 @@ GROQ_API_KEY=your-groq-api-key
 
 # API 保護（自訂密鑰）
 API_SECRET_KEY=your-secret-key
+
+# AI 文案生成（二擇一，也可在 Settings 頁面設定）
+# 方式 A：本地有 Claude CLI → 不需設定，自動使用 claude --print
+# 方式 B：Vercel 部署或無 CLI → 設定以下 API Key
+ANTHROPIC_API_KEY=sk-ant-...         # 選填，設定後走 Anthropic API
+ANTHROPIC_MODEL=claude-sonnet-4-20250514  # 選填，預設 Sonnet 4
 ```
 
 ### 資料庫初始化
@@ -229,7 +235,7 @@ src/
 | 項目 | 費用 |
 |------|------|
 | Groq Whisper | 免費額度內 |
-| Claude 文案生成 | 走 Pro/Max 額度，零額外費用 |
+| Claude 文案生成 | CLI 模式走 Pro/Max 額度零費用；API 模式按 token 計費 |
 | Supabase | Free tier |
 | Vercel | Free tier |
 | **月總計** | **~$0**（Pro 訂閱費用除外） |
@@ -248,7 +254,7 @@ src/
 
 ## 已知限制
 
-- `claude --print` 依賴本地 CLI，Vercel serverless 無法使用 → 部署時需改用 Anthropic API
+- 文案生成支援雙模式（CLI / API），可在 Settings 頁面或環境變數切換
 - 音訊單檔限 25MB（Whisper API 限制），超過需先壓縮
 - 排程發布依賴 Supabase pg_cron，需另行設定
 - Meta API Token 需手動取得並貼入 Settings 頁面
