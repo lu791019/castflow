@@ -6,6 +6,8 @@ import {
   saveFacebookSettings,
   saveThreadsSettings,
   disconnectPlatform,
+  getAiConfig,
+  saveAiConfig,
 } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,11 +34,25 @@ export default function SettingsPage() {
   const [thSaving, setThSaving] = useState(false);
   const [thMsg, setThMsg] = useState("");
 
+  // AI config
+  const [aiProvider, setAiProvider] = useState("auto");
+  const [aiApiKey, setAiApiKey] = useState("");
+  const [aiModel, setAiModel] = useState("claude-sonnet-4-20250514");
+  const [aiHasEnvKey, setAiHasEnvKey] = useState(false);
+  const [aiSaving, setAiSaving] = useState(false);
+  const [aiMsg, setAiMsg] = useState("");
+
   useEffect(() => {
-    getMetaConnectionStatus().then((status) => {
-      setConn(status as ConnectionState);
-      setLoading(false);
-    });
+    Promise.all([getMetaConnectionStatus(), getAiConfig()]).then(
+      ([status, ai]) => {
+        setConn(status as ConnectionState);
+        setAiProvider(ai.provider);
+        setAiApiKey(ai.api_key);
+        setAiModel(ai.model);
+        setAiHasEnvKey(ai.has_env_key);
+        setLoading(false);
+      },
+    );
   }, []);
 
   async function handleSaveFb() {
@@ -91,6 +107,104 @@ export default function SettingsPage() {
           Meta 帳號連結與 Token 管理
         </p>
       </div>
+
+      {/* AI 設定 */}
+      <section className="rounded-lg border p-6 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">AI 文案生成</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            選擇文案生成的 AI 引擎
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-2">模式</label>
+            <div className="flex gap-2">
+              {[
+                { value: "auto", label: "自動偵測" },
+                { value: "cli", label: "Claude CLI" },
+                { value: "api", label: "Anthropic API" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setAiProvider(opt.value)}
+                  className={`rounded-md border px-4 py-2 text-sm transition-colors ${
+                    aiProvider === opt.value
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-input hover:bg-accent"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5">
+              {aiProvider === "auto" && "有 API Key 時走 API，否則走 CLI（預設）"}
+              {aiProvider === "cli" && "使用本地 claude --print，走 Pro/Max 額度，零 API 費用"}
+              {aiProvider === "api" && "使用 Anthropic API，適用 Vercel 部署或無 CLI 環境"}
+            </p>
+          </div>
+
+          {(aiProvider === "api" || aiProvider === "auto") && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Anthropic API Key
+                  {aiHasEnvKey && (
+                    <span className="ml-2 text-xs text-green-600 font-normal">
+                      環境變數已設定
+                    </span>
+                  )}
+                </label>
+                <Input
+                  value={aiApiKey}
+                  onChange={(e) => setAiApiKey(e.target.value)}
+                  placeholder={aiHasEnvKey ? "已從環境變數載入（留空使用環境變數）" : "sk-ant-..."}
+                  type="password"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Model</label>
+                <select
+                  value={aiModel}
+                  onChange={(e) => setAiModel(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (推薦)</option>
+                  <option value="claude-opus-4-20250514">Claude Opus 4</option>
+                  <option value="claude-haiku-4-20250506">Claude Haiku 4</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {aiMsg && (
+            <p className={`text-sm ${aiMsg.includes("失敗") || aiMsg.includes("需要") ? "text-destructive" : "text-green-600"}`}>
+              {aiMsg}
+            </p>
+          )}
+
+          <Button
+            size="sm"
+            disabled={aiSaving}
+            onClick={async () => {
+              setAiSaving(true);
+              setAiMsg("");
+              const result = await saveAiConfig(aiProvider, aiApiKey, aiModel);
+              setAiSaving(false);
+              if (result.error) {
+                setAiMsg(result.error);
+              } else {
+                setAiMsg("已儲存");
+              }
+            }}
+          >
+            {aiSaving && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+            儲存 AI 設定
+          </Button>
+        </div>
+      </section>
 
       {/* Facebook */}
       <section className="rounded-lg border p-6 space-y-4">
