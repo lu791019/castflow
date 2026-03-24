@@ -57,7 +57,7 @@
 | 音訊儲存 | Supabase Storage | 直接上傳，免設定 S3 |
 | 音訊壓縮 | ffmpeg.wasm（瀏覽器端） | 壓至 64kbps mono 16kHz，確保 ≤25MB |
 | 轉錄 | Groq Whisper API (whisper-large-v3-turbo) | 速度極快，免費額度足夠 |
-| 文案生成 | `claude --print` CLI | 走 Claude Pro/Max 額度，零 API 費用 |
+| 文案生成 | Claude CLI 或 Anthropic API（雙模式） | CLI 走 Pro/Max 額度零費用；API 適用 Vercel 部署 |
 | 排程發布 | Meta Graph API + Threads API | Threads + FB 直發 |
 | 排程觸發 | Supabase pg_cron | 分鐘級排程，免費方案即可 |
 | 部署 | Vercel | Next.js 原生整合 |
@@ -72,7 +72,7 @@
    上傳完成自動觸發 → 從 Storage 取得音訊 → Groq Whisper 轉錄 → 存入 transcripts 表（含逐段時間軸）
 
 3. AI 文案生成
-   選擇集數 + 風格（可選）→ claude --print 根據逐字稿 + 風格 DNA 生成 6 平台文案 → 存入 contents 表
+   選擇集數 + 風格（可選）→ Claude CLI 或 API 根據逐字稿 + 風格 DNA 生成 6 平台文案 → 存入 contents 表
 
 4. 編輯與發布
    6 平台 Tab 檢視/編輯 → 設定排程時間或立即發布 → Meta API 發送至 Threads / Facebook
@@ -158,6 +158,12 @@ GROQ_API_KEY=your-groq-api-key
 
 # API 保護（自訂密鑰）
 API_SECRET_KEY=your-secret-key
+
+# AI 文案生成（二擇一，也可在 Settings 頁面設定）
+# 方式 A：本地有 Claude CLI → 不需設定，自動使用 claude --print
+# 方式 B：Vercel 部署或無 CLI → 設定以下 API Key
+ANTHROPIC_API_KEY=sk-ant-...         # 選填，設定後走 Anthropic API
+ANTHROPIC_MODEL=claude-sonnet-4-20250514  # 選填，預設 Sonnet 4
 ```
 
 ### 資料庫初始化
@@ -224,12 +230,74 @@ src/
     └── types/                    # TypeScript 型別定義
 ```
 
+## 實測範例：從 Podcast 到 6 平台文案
+
+以下是一次完整的端到端測試記錄。
+
+### 測試素材
+
+- 27 分鐘中文 Podcast（主題：AI 時代的職涯轉型與副業策略）
+- 原始檔案：MP3 格式
+
+### Step 1：上傳音訊
+
+1. 進入 `/episodes/new`，選擇 MP3 檔案
+2. 瀏覽器端 ffmpeg.wasm 自動壓縮（64kbps mono 16kHz）
+3. 上傳至 Supabase Storage，建立 episode 記錄
+
+### Step 2：AI 轉錄
+
+上傳完成後自動觸發 Groq Whisper 轉錄：
+
+- 耗時：**18 秒**
+- 產出：7,624 字逐字稿 + 651 個時間軸片段
+- 語言：自動偵測為中文
+
+### Step 3：匯入 Style DNA（可選）
+
+從歷史 Threads 貼文中提取風格特徵：
+
+1. 進入 `/styles/new`，選擇平台「Threads」
+2. 貼入至少 3 篇歷史貼文 + 互動數據（本次使用 78 篇）
+3. AI 分析產出 7 維度風格 DNA：
+   - 結構模式：Hook → 論述展開 → 條列重點 → CTA 導流
+   - 開場 Hook：反差型 / 提問型 / 宣告型 / 自嘲型 / 數據型
+   - 語氣特徵：口語比例極高、第一人稱敘事、斷言式語氣
+   - CTA / 收尾：「留言處繼續看」分段式 CTA
+   - 長度 / 格式：主力 200-500 字、大量換行、Emoji 中等偏多
+   - 高互動特徵：反差斷言 + 職涯焦慮主題
+   - 禁忌：不寫學術腔、不做中立派、不過度修飾
+
+### Step 4：AI 文案生成
+
+1. 進入 `/episodes/[id]/generate`
+2. 選擇「Dex Threads 風格 v1」
+3. AI 根據逐字稿 + Style DNA 生成 6 平台文案
+4. 耗時：**~109 秒**（CLI 模式，6 平台同時）
+
+### Step 5：編輯與發布
+
+- 在 `/episodes/[id]/edit` 的 6 平台 Tab 中檢視各平台文案
+- 可逐平台編輯、重新生成（單平台約 30 秒）
+- Threads / Facebook 可直接排程或立即發布
+- 其他平台一鍵複製手動發布
+
+### 效能數據
+
+| 步驟 | 耗時 |
+|------|------|
+| 音訊壓縮（瀏覽器端） | ~10 秒 |
+| Groq Whisper 轉錄（27 分鐘音訊） | 18 秒 |
+| 6 平台文案生成（CLI 模式） | ~109 秒 |
+| 單平台重新生成 | ~30 秒 |
+| **端到端總計** | **~2.5 分鐘** |
+
 ## 費用估算（每月，1-2 集/週）
 
 | 項目 | 費用 |
 |------|------|
 | Groq Whisper | 免費額度內 |
-| Claude 文案生成 | 走 Pro/Max 額度，零額外費用 |
+| Claude 文案生成 | CLI 模式走 Pro/Max 額度零費用；API 模式按 token 計費 |
 | Supabase | Free tier |
 | Vercel | Free tier |
 | **月總計** | **~$0**（Pro 訂閱費用除外） |
@@ -248,7 +316,7 @@ src/
 
 ## 已知限制
 
-- `claude --print` 依賴本地 CLI，Vercel serverless 無法使用 → 部署時需改用 Anthropic API
+- 文案生成支援雙模式（CLI / API），可在 Settings 頁面或環境變數切換
 - 音訊單檔限 25MB（Whisper API 限制），超過需先壓縮
 - 排程發布依賴 Supabase pg_cron，需另行設定
 - Meta API Token 需手動取得並貼入 Settings 頁面
