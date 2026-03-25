@@ -199,9 +199,14 @@ export default function SettingsPage() {
                     {aiProvider === "anthropic" && (
                       <>
                         <option value="">預設 (Sonnet 4)</option>
-                        <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
-                        <option value="claude-opus-4-20250514">Claude Opus 4</option>
-                        <option value="claude-haiku-4-20250506">Claude Haiku 4</option>
+                        <optgroup label="Claude 4 系列">
+                          <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
+                          <option value="claude-opus-4-20250514">Claude Opus 4</option>
+                        </optgroup>
+                        <optgroup label="Claude 3.5 系列">
+                          <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                          <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
+                        </optgroup>
                       </>
                     )}
                     {aiProvider === "openai" && (
