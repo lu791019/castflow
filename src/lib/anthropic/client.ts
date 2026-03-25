@@ -15,8 +15,8 @@ export interface AiConfig {
 }
 
 const DEFAULT_MODELS: Record<string, string> = {
-  anthropic: "claude-sonnet-4-20250514",
-  openai: "gpt-4o",
+  anthropic: "claude-sonnet-4-6",
+  openai: "gpt-4.1",
   gemini: "gemini-2.5-flash",
 };
 

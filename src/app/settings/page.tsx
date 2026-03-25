@@ -198,7 +198,12 @@ export default function SettingsPage() {
                   >
                     {aiProvider === "anthropic" && (
                       <>
-                        <option value="">預設 (Sonnet 4)</option>
+                        <option value="">預設 (Sonnet 4.6)</option>
+                        <optgroup label="Claude 4.5 / 4.6 系列">
+                          <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+                          <option value="claude-opus-4-6">Claude Opus 4.6</option>
+                          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+                        </optgroup>
                         <optgroup label="Claude 4 系列">
                           <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
                           <option value="claude-opus-4-20250514">Claude Opus 4</option>
@@ -211,20 +216,33 @@ export default function SettingsPage() {
                     )}
                     {aiProvider === "openai" && (
                       <>
-                        <option value="">預設 (GPT-4o)</option>
-                        <option value="gpt-4o">GPT-4o</option>
-                        <option value="gpt-4o-mini">GPT-4o Mini</option>
-                        <option value="gpt-4.1">GPT-4.1</option>
-                        <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
-                        <option value="o3-mini">o3-mini</option>
+                        <option value="">預設 (GPT-4.1)</option>
+                        <optgroup label="GPT-4.1 系列">
+                          <option value="gpt-4.1">GPT-4.1</option>
+                          <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+                          <option value="gpt-4.1-nano">GPT-4.1 Nano</option>
+                        </optgroup>
+                        <optgroup label="GPT-4o 系列">
+                          <option value="gpt-4o">GPT-4o</option>
+                          <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        </optgroup>
+                        <optgroup label="推理模型">
+                          <option value="o3">o3</option>
+                          <option value="o3-mini">o3-mini</option>
+                          <option value="o4-mini">o4-mini</option>
+                        </optgroup>
                       </>
                     )}
                     {aiProvider === "gemini" && (
                       <>
                         <option value="">預設 (Gemini 2.5 Flash)</option>
-                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        <optgroup label="Gemini 2.5 系列">
+                          <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                          <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                        </optgroup>
+                        <optgroup label="Gemini 2.0 系列">
+                          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        </optgroup>
                       </>
                     )}
                   </select>
