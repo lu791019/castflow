@@ -85,18 +85,31 @@ export async function getAiConfig() {
   return {
     provider: config?.provider || "auto",
     api_key: config?.api_key || "",
-    model: config?.model || "claude-sonnet-4-20250514",
-    has_env_key: !!process.env.ANTHROPIC_API_KEY,
+    model: config?.model || "",
+    env_keys: {
+      anthropic: !!process.env.ANTHROPIC_API_KEY,
+      openai: !!process.env.OPENAI_API_KEY,
+      gemini: !!process.env.GEMINI_API_KEY,
+    },
   };
 }
 
 export async function saveAiConfig(provider: string, apiKey: string, model: string) {
-  if (provider === "api" && !apiKey && !process.env.ANTHROPIC_API_KEY) {
-    return { error: "API 模式需要填入 API Key（或設定環境變數 ANTHROPIC_API_KEY）" };
+  const needsKey = ["anthropic", "openai", "gemini"].includes(provider);
+  if (needsKey && !apiKey) {
+    const envMap: Record<string, string | undefined> = {
+      anthropic: process.env.ANTHROPIC_API_KEY,
+      openai: process.env.OPENAI_API_KEY,
+      gemini: process.env.GEMINI_API_KEY,
+    };
+    if (!envMap[provider]) {
+      return { error: `${provider} 模式需要填入 API Key（或設定對應環境變數）` };
+    }
   }
 
   const supabase = createAdminClient();
-  const value: Record<string, string> = { provider, model };
+  const value: Record<string, string> = { provider };
+  if (model) value.model = model;
   if (apiKey) value.api_key = apiKey;
 
   const { error } = await supabase.from("settings").upsert({

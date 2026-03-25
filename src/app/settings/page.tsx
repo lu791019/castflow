@@ -37,8 +37,8 @@ export default function SettingsPage() {
   // AI config
   const [aiProvider, setAiProvider] = useState("auto");
   const [aiApiKey, setAiApiKey] = useState("");
-  const [aiModel, setAiModel] = useState("claude-sonnet-4-20250514");
-  const [aiHasEnvKey, setAiHasEnvKey] = useState(false);
+  const [aiModel, setAiModel] = useState("");
+  const [aiEnvKeys, setAiEnvKeys] = useState({ anthropic: false, openai: false, gemini: false });
   const [aiSaving, setAiSaving] = useState(false);
   const [aiMsg, setAiMsg] = useState("");
 
@@ -49,7 +49,7 @@ export default function SettingsPage() {
         setAiProvider(ai.provider);
         setAiApiKey(ai.api_key);
         setAiModel(ai.model);
-        setAiHasEnvKey(ai.has_env_key);
+        setAiEnvKeys(ai.env_keys);
         setLoading(false);
       },
     );
@@ -119,16 +119,18 @@ export default function SettingsPage() {
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium mb-2">模式</label>
-            <div className="flex gap-2">
+            <label className="block text-sm font-medium mb-2">Provider</label>
+            <div className="flex flex-wrap gap-2">
               {[
                 { value: "auto", label: "自動偵測" },
                 { value: "cli", label: "Claude CLI" },
-                { value: "api", label: "Anthropic API" },
+                { value: "anthropic", label: "Anthropic" },
+                { value: "openai", label: "OpenAI" },
+                { value: "gemini", label: "Gemini" },
               ].map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => setAiProvider(opt.value)}
+                  onClick={() => { setAiProvider(opt.value); setAiModel(""); }}
                   className={`rounded-md border px-4 py-2 text-sm transition-colors ${
                     aiProvider === opt.value
                       ? "border-primary bg-primary text-primary-foreground"
@@ -140,41 +142,88 @@ export default function SettingsPage() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-1.5">
-              {aiProvider === "auto" && "有 API Key 時走 API，否則走 CLI（預設）"}
+              {aiProvider === "auto" && "依序檢查 Anthropic → OpenAI → Gemini API Key，都沒有則走 CLI"}
               {aiProvider === "cli" && "使用本地 claude --print，走 Pro/Max 額度，零 API 費用"}
-              {aiProvider === "api" && "使用 Anthropic API，適用 Vercel 部署或無 CLI 環境"}
+              {aiProvider === "anthropic" && "使用 Anthropic Claude API"}
+              {aiProvider === "openai" && "使用 OpenAI GPT API"}
+              {aiProvider === "gemini" && "使用 Google Gemini API"}
             </p>
           </div>
 
-          {(aiProvider === "api" || aiProvider === "auto") && (
+          {aiProvider !== "cli" && (
             <>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Anthropic API Key
-                  {aiHasEnvKey && (
+                  API Key
+                  {aiProvider !== "auto" && aiEnvKeys[aiProvider as keyof typeof aiEnvKeys] && (
                     <span className="ml-2 text-xs text-green-600 font-normal">
                       環境變數已設定
+                    </span>
+                  )}
+                  {aiProvider === "auto" && (
+                    <span className="ml-2 text-xs text-muted-foreground font-normal">
+                      {[
+                        aiEnvKeys.anthropic && "Anthropic",
+                        aiEnvKeys.openai && "OpenAI",
+                        aiEnvKeys.gemini && "Gemini",
+                      ].filter(Boolean).join("、") || "無"} 環境變數已設定
                     </span>
                   )}
                 </label>
                 <Input
                   value={aiApiKey}
                   onChange={(e) => setAiApiKey(e.target.value)}
-                  placeholder={aiHasEnvKey ? "已從環境變數載入（留空使用環境變數）" : "sk-ant-..."}
+                  placeholder={
+                    aiProvider === "anthropic" ? "sk-ant-..." :
+                    aiProvider === "openai" ? "sk-..." :
+                    aiProvider === "gemini" ? "AIza..." :
+                    "填入對應 provider 的 API Key（自動模式可留空）"
+                  }
                   type="password"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Model</label>
-                <select
-                  value={aiModel}
-                  onChange={(e) => setAiModel(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (推薦)</option>
-                  <option value="claude-opus-4-20250514">Claude Opus 4</option>
-                  <option value="claude-haiku-4-20250506">Claude Haiku 4</option>
-                </select>
+                {aiProvider === "auto" ? (
+                  <Input
+                    value={aiModel}
+                    onChange={(e) => setAiModel(e.target.value)}
+                    placeholder="留空使用各 provider 預設模型"
+                  />
+                ) : (
+                  <select
+                    value={aiModel}
+                    onChange={(e) => setAiModel(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    {aiProvider === "anthropic" && (
+                      <>
+                        <option value="">預設 (Sonnet 4)</option>
+                        <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
+                        <option value="claude-opus-4-20250514">Claude Opus 4</option>
+                        <option value="claude-haiku-4-20250506">Claude Haiku 4</option>
+                      </>
+                    )}
+                    {aiProvider === "openai" && (
+                      <>
+                        <option value="">預設 (GPT-4o)</option>
+                        <option value="gpt-4o">GPT-4o</option>
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="gpt-4.1">GPT-4.1</option>
+                        <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+                        <option value="o3-mini">o3-mini</option>
+                      </>
+                    )}
+                    {aiProvider === "gemini" && (
+                      <>
+                        <option value="">預設 (Gemini 2.5 Flash)</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                      </>
+                    )}
+                  </select>
+                )}
               </div>
             </>
           )}

@@ -1,26 +1,42 @@
 import { execFile } from "child_process";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const CLAUDE_CLI = process.env.CLAUDE_CLI || "claude";
-const DEFAULT_MODEL = "claude-sonnet-4-20250514";
+
+type Provider = "cli" | "anthropic" | "openai" | "gemini" | "auto";
 
 export interface AiConfig {
-  provider: "cli" | "api" | "auto";
+  provider: Provider;
   api_key?: string;
   model?: string;
 }
 
+const DEFAULT_MODELS: Record<string, string> = {
+  anthropic: "claude-sonnet-4-20250514",
+  openai: "gpt-4o",
+  gemini: "gemini-2.5-flash",
+};
+
+interface ResolvedConfig {
+  provider: "cli" | "anthropic" | "openai" | "gemini";
+  apiKey?: string;
+  model: string;
+}
+
 /**
  * 從 DB 讀取 AI 設定，fallback 到環境變數
- * 優先順序：DB 設定 > 環境變數 > 預設值
  *
  * provider 邏輯：
- * - "api"  → 強制走 Anthropic API
- * - "cli"  → 強制走 claude --print CLI
- * - "auto" → 有 API Key（DB 或環境變數）走 API，否則走 CLI
+ * - "anthropic" → Anthropic API
+ * - "openai"    → OpenAI API
+ * - "gemini"    → Google Gemini API
+ * - "cli"       → claude --print CLI
+ * - "auto"      → 依序檢查有無 API Key，都沒有則走 CLI
  */
-async function resolveConfig(): Promise<{ provider: "cli" | "api"; apiKey?: string; model: string }> {
+async function resolveConfig(): Promise<ResolvedConfig> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("settings")
@@ -29,38 +45,61 @@ async function resolveConfig(): Promise<{ provider: "cli" | "api"; apiKey?: stri
     .single();
 
   const db = data?.value as AiConfig | null;
-  const dbModel = db?.model || process.env.ANTHROPIC_MODEL || DEFAULT_MODEL;
+  const provider = db?.provider || "auto";
+  const dbApiKey = db?.api_key;
+  const dbModel = db?.model;
 
-  if (db?.provider === "api") {
-    const apiKey = db.api_key || process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error("已選擇 API 模式但未設定 API Key（頁面設定或環境變數 ANTHROPIC_API_KEY）");
-    return { provider: "api", apiKey, model: dbModel };
+  if (provider === "cli") {
+    return { provider: "cli", model: "cli" };
   }
 
-  if (db?.provider === "cli") {
-    return { provider: "cli", model: dbModel };
+  if (provider === "anthropic") {
+    const apiKey = dbApiKey || process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) throw new Error("已選擇 Anthropic 但未設定 API Key");
+    return { provider: "anthropic", apiKey, model: dbModel || process.env.ANTHROPIC_MODEL || DEFAULT_MODELS.anthropic };
   }
 
-  // "auto" 或 DB 沒設定 → 有 API Key 走 API，否則走 CLI
-  const autoApiKey = db?.api_key || process.env.ANTHROPIC_API_KEY;
-  if (autoApiKey) {
-    return { provider: "api", apiKey: autoApiKey, model: dbModel };
+  if (provider === "openai") {
+    const apiKey = dbApiKey || process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error("已選擇 OpenAI 但未設定 API Key");
+    return { provider: "openai", apiKey, model: dbModel || process.env.OPENAI_MODEL || DEFAULT_MODELS.openai };
   }
-  return { provider: "cli", model: dbModel };
+
+  if (provider === "gemini") {
+    const apiKey = dbApiKey || process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("已選擇 Gemini 但未設定 API Key");
+    return { provider: "gemini", apiKey, model: dbModel || process.env.GEMINI_MODEL || DEFAULT_MODELS.gemini };
+  }
+
+  // auto: 依序檢查環境變數
+  if (dbApiKey || process.env.ANTHROPIC_API_KEY) {
+    return { provider: "anthropic", apiKey: dbApiKey || process.env.ANTHROPIC_API_KEY, model: dbModel || DEFAULT_MODELS.anthropic };
+  }
+  if (process.env.OPENAI_API_KEY) {
+    return { provider: "openai", apiKey: process.env.OPENAI_API_KEY, model: dbModel || DEFAULT_MODELS.openai };
+  }
+  if (process.env.GEMINI_API_KEY) {
+    return { provider: "gemini", apiKey: process.env.GEMINI_API_KEY, model: dbModel || DEFAULT_MODELS.gemini };
+  }
+  return { provider: "cli", model: "cli" };
 }
 
 /**
- * 統一入口：根據設定自動選擇 CLI 或 API
- * - DB 設定 ai_config.provider = "api" → 走 Anthropic API
- * - DB 設定 ai_config.provider = "cli" → 走 claude --print CLI
- * - 未設定 → 有 ANTHROPIC_API_KEY 環境變數走 API，否則走 CLI
+ * 統一入口：根據設定自動選擇 AI provider
  */
 export async function runClaudePrint(prompt: string): Promise<string> {
   const config = await resolveConfig();
-  if (config.provider === "api") {
-    return runAnthropicApi(prompt, config.apiKey!, config.model);
+
+  switch (config.provider) {
+    case "anthropic":
+      return runAnthropicApi(prompt, config.apiKey!, config.model);
+    case "openai":
+      return runOpenAiApi(prompt, config.apiKey!, config.model);
+    case "gemini":
+      return runGeminiApi(prompt, config.apiKey!, config.model);
+    case "cli":
+      return runClaudeCli(prompt);
   }
-  return runClaudeCli(prompt);
 }
 
 async function runAnthropicApi(prompt: string, apiKey: string, model: string): Promise<string> {
@@ -78,12 +117,34 @@ async function runAnthropicApi(prompt: string, apiKey: string, model: string): P
   return textBlock.text;
 }
 
+async function runOpenAiApi(prompt: string, apiKey: string, model: string): Promise<string> {
+  const client = new OpenAI({ apiKey });
+  const response = await client.chat.completions.create({
+    model,
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 8192,
+  });
+
+  const text = response.choices[0]?.message?.content;
+  if (!text) throw new Error("OpenAI API 回應中無文字內容");
+  return text;
+}
+
+async function runGeminiApi(prompt: string, apiKey: string, model: string): Promise<string> {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const gemini = genAI.getGenerativeModel({ model });
+  const result = await gemini.generateContent(prompt);
+  const text = result.response.text();
+  if (!text) throw new Error("Gemini API 回應中無文字內容");
+  return text;
+}
+
 function runClaudeCli(prompt: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = execFile(
       CLAUDE_CLI,
       ["--print"],
-      { maxBuffer: 1024 * 1024 * 10 }, // 10MB buffer
+      { maxBuffer: 1024 * 1024 * 10 },
       (error, stdout, stderr) => {
         if (error) {
           reject(new Error(`claude --print 失敗: ${stderr || error.message}`));
