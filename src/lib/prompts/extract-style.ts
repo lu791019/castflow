@@ -1,6 +1,7 @@
 export function buildExtractStylePrompt(
   platform: string,
   examples: { content: string; likes?: number; comments?: number; shares?: number }[],
+  customDimensionNames?: string[],
 ): string {
   const examplesText = examples
     .map((ex, i) => {
@@ -19,13 +20,30 @@ export function buildExtractStylePrompt(
     })
     .join("\n\n");
 
+  const hasCustom = customDimensionNames && customDimensionNames.length > 0;
+  const totalDimensions = 7 + (hasCustom ? customDimensionNames.length : 0);
+
+  const customJsonLines = hasCustom
+    ? customDimensionNames.map(
+        (name) => `  "${name}": "${name}：從範例中觀察到的相關模式"`,
+      ).join(",\n")
+    : "";
+
+  const customSection = hasCustom
+    ? `,\n${customJsonLines}`
+    : "";
+
+  const customNote = hasCustom
+    ? `\n\n此外，請額外分析以下自訂維度：${customDimensionNames.join("、")}。`
+    : "";
+
   return `你是一位社群內容分析專家。請分析以下 ${platform} 平台的 ${examples.length} 篇範例文案，提取風格 DNA。
 
 ## 範例文案
 ${examplesText}
 
 ## 分析任務
-請從上述範例中提取以下 7 個維度的風格模式。每個維度都要具體描述觀察到的模式，而非泛泛而談。
+請從上述範例中提取以下 ${totalDimensions} 個維度的風格模式。每個維度都要具體描述觀察到的模式，而非泛泛而談。${customNote}
 
 回傳 JSON 格式：
 \`\`\`json
@@ -36,7 +54,7 @@ ${examplesText}
   "cta_pattern": "CTA / 收尾模式：結尾的行動呼籲或收束方式",
   "format_specs": "長度 / 格式：字數範圍、emoji 使用頻率、分段方式、hashtag 習慣",
   "high_engagement_features": "高互動特徵：從互動數據回推，高互動文案的共同特徵",
-  "taboos": "禁忌：明確避免的模式或用語"
+  "taboos": "禁忌：明確避免的模式或用語"${customSection}
 }
 \`\`\`
 

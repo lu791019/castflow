@@ -61,6 +61,16 @@
 - [ ] Deploy to Vercel
 - [ ] Vercel + Supabase production configuration
 
+## 功能優化：Style DNA 動態項目新增
+- [x] 型別更新：StyleDimensions 加 index signature + REQUIRED_DIMENSION_KEYS 常數 + DIMENSION_LABELS 移入 types
+- [x] 提取 prompt：動態加入自訂維度到 JSON 輸出格式
+- [x] 提取邏輯：extractStyleDna 接收 customDimensionNames，驗證只檢查必填項
+- [x] Server action：createStyleAction 接收並傳遞 customDimensionNames
+- [x] 建立新風格 UI：新增自訂維度輸入區（名稱 + 增刪按鈕）
+- [x] 風格詳情頁：顯示/編輯自訂維度 + 支援新增/刪除自訂項
+- [x] 生成 prompt：buildStyleSection 動態帶入所有維度（必填 + 自訂）
+- [x] 驗證：13/13 tests pass + tsc 零錯誤 + dev server 頁面 200
+
 ## Verification
 - [ ] Upload 40-min Chinese podcast → verify compression + transcription quality
 - [ ] Generate 6-platform content (fixed prompt) → verify format correctness

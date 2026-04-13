@@ -22,6 +22,43 @@
 > - 排程使用 Supabase pg_cron（取代 Vercel Cron，支援分鐘級觸發）
 > - Phase 順序調整：P1 初始化 → P2 音訊轉錄 → P3 文案生成（簡化版）→ P4 排程發布 → P5 風格 DNA → P6 整合
 
+---
+
+## 功能優化：Style DNA 動態項目新增
+
+### 目標
+讓 Style DNA 除了固定 7 個必填維度外，支援使用者在建立風格時新增自訂維度（選填），AI 會一併從範例中提取這些自訂維度的模式。
+
+### 設計決策
+
+**資料結構：flat key 方案**
+- DB 已用 JSONB，直接在同一層存放自訂欄位（不另開巢狀物件）
+- TypeScript 用 index signature `[key: string]: string` 讓自訂 key 合法
+- 用常數 `REQUIRED_DIMENSION_KEYS` 區分必填 vs 自訂
+- 理由：最小改動、prompt 組裝簡單、DB 不需 migration
+
+**自訂維度流程**
+1. 建立新風格頁 → 使用者點「新增自訂項目」→ 輸入項目名稱（如「常用句型」）
+2. 提交時，自訂項目名稱一起傳給 AI → AI 從範例提取對應模式
+3. 儲存到 JSONB 中與 7 個必填維度同層
+4. 風格詳情頁自動顯示所有維度（必填 + 自訂），可新增/刪除自訂項
+
+### 改動範圍
+
+| 檔案 | 改動 |
+|------|------|
+| `src/lib/types/index.ts` | `StyleDimensions` 加 index signature；抽出 `REQUIRED_DIMENSION_KEYS` 常數 |
+| `src/app/styles/new/page.tsx` | 新增自訂維度輸入 UI（名稱輸入 + 增刪按鈕） |
+| `src/app/styles/actions.ts` | `createStyleAction` 接收 customDimensionNames 並傳遞 |
+| `src/lib/anthropic/extract-style.ts` | 接收自訂維度名稱、驗證時只檢查必填項 |
+| `src/lib/prompts/extract-style.ts` | prompt 動態加入自訂維度到 JSON 輸出格式 |
+| `src/app/styles/[id]/page.tsx` | 詳情頁顯示/編輯自訂維度、支援新增/刪除 |
+| `src/lib/prompts/generate-content.ts` | `buildStyleSection` 動態帶入所有維度 |
+
+### 不做的事
+- 不改 DB schema（JSONB 天然支援）
+- 不加自訂維度排序功能（按插入順序）
+
 ## Proposed Changes
 
 ### Project Structure

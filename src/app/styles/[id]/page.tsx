@@ -3,20 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { StyleDimensions } from "@/lib/types";
+import { StyleDimensions, REQUIRED_DIMENSION_KEYS, DIMENSION_LABELS } from "@/lib/types";
 import { updateStyleDimensionsAction, deleteStyleAction } from "../actions";
 import { Button } from "@/components/ui/button";
-import { Loader2, Save, Check, Trash2 } from "lucide-react";
-
-const DIMENSION_LABELS: Record<keyof StyleDimensions, string> = {
-  structure_pattern: "結構模式",
-  hook_pattern: "開場 Hook 模式",
-  tone_features: "語氣特徵",
-  cta_pattern: "CTA / 收尾模式",
-  format_specs: "長度 / 格式",
-  high_engagement_features: "高互動特徵",
-  taboos: "禁忌",
-};
+import { Input } from "@/components/ui/input";
+import { Loader2, Save, Check, Trash2, Plus } from "lucide-react";
 
 export default function StyleDetailPage({
   params,
@@ -32,6 +23,7 @@ export default function StyleDetailPage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [newCustomName, setNewCustomName] = useState("");
 
   useEffect(() => {
     async function load(id: string) {
@@ -64,6 +56,19 @@ export default function StyleDetailPage({
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  }
+
+  function addCustomDimension() {
+    const trimmed = newCustomName.trim();
+    if (!trimmed || !dimensions) return;
+    setDimensions({ ...dimensions, [trimmed]: "" });
+    setNewCustomName("");
+  }
+
+  function removeCustomDimension(key: string) {
+    if (!dimensions) return;
+    const { [key]: _, ...rest } = dimensions;
+    setDimensions(rest as StyleDimensions);
   }
 
   async function handleDelete() {
@@ -113,24 +118,80 @@ export default function StyleDetailPage({
       </div>
 
       <div className="space-y-4">
-        {(Object.keys(DIMENSION_LABELS) as (keyof StyleDimensions)[]).map(
-          (key) => (
-            <div key={key} className="rounded-lg border p-4">
-              <label className="block text-sm font-semibold mb-2">
-                {DIMENSION_LABELS[key]}
-              </label>
-              <textarea
-                value={dimensions[key]}
-                onChange={(e) =>
-                  setDimensions((prev) =>
-                    prev ? { ...prev, [key]: e.target.value } : prev,
-                  )
-                }
-                className="min-h-[80px] w-full resize-y rounded-lg border bg-background p-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          ),
-        )}
+        <h2 className="text-sm font-medium text-muted-foreground">必填維度</h2>
+        {REQUIRED_DIMENSION_KEYS.map((key) => (
+          <div key={key} className="rounded-lg border p-4">
+            <label className="block text-sm font-semibold mb-2">
+              {DIMENSION_LABELS[key]}
+            </label>
+            <textarea
+              value={dimensions[key]}
+              onChange={(e) =>
+                setDimensions((prev) =>
+                  prev ? { ...prev, [key]: e.target.value } : prev,
+                )
+              }
+              className="min-h-[80px] w-full resize-y rounded-lg border bg-background p-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+        ))}
+
+        {(() => {
+          const requiredSet = new Set<string>(REQUIRED_DIMENSION_KEYS);
+          const customKeys = Object.keys(dimensions).filter(
+            (key) => !requiredSet.has(key),
+          );
+          if (customKeys.length === 0 && !newCustomName) return null;
+          return (
+            <>
+              <h2 className="text-sm font-medium text-muted-foreground pt-2">
+                自訂維度
+              </h2>
+              {customKeys.map((key) => (
+                <div key={key} className="rounded-lg border p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-semibold">{key}</label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCustomDimension(key)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <textarea
+                    value={dimensions[key]}
+                    onChange={(e) =>
+                      setDimensions((prev) =>
+                        prev ? { ...prev, [key]: e.target.value } : prev,
+                      )
+                    }
+                    className="min-h-[80px] w-full resize-y rounded-lg border bg-background p-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+              ))}
+            </>
+          );
+        })()}
+
+        <div className="flex items-center gap-2 pt-2">
+          <Input
+            value={newCustomName}
+            onChange={(e) => setNewCustomName(e.target.value)}
+            placeholder="新增自訂維度名稱"
+            className="flex-1"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCustomDimension();
+              }
+            }}
+          />
+          <Button variant="outline" size="sm" onClick={addCustomDimension}>
+            <Plus className="mr-1 h-3 w-3" />
+            新增
+          </Button>
+        </div>
       </div>
     </div>
   );

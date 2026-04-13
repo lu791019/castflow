@@ -1,12 +1,13 @@
 import { runClaudePrint } from "./client";
 import { buildExtractStylePrompt } from "@/lib/prompts/extract-style";
-import { StyleDimensions } from "@/lib/types";
+import { StyleDimensions, REQUIRED_DIMENSION_KEYS } from "@/lib/types";
 
 export async function extractStyleDna(
   platform: string,
   examples: { content: string; likes?: number; comments?: number; shares?: number }[],
+  customDimensionNames?: string[],
 ): Promise<StyleDimensions> {
-  const prompt = buildExtractStylePrompt(platform, examples);
+  const prompt = buildExtractStylePrompt(platform, examples, customDimensionNames);
   const text = await runClaudePrint(prompt);
 
   const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -16,17 +17,8 @@ export async function extractStyleDna(
 
   const parsed = JSON.parse(jsonMatch[0]) as StyleDimensions;
 
-  // Validate all dimensions present
-  const required: (keyof StyleDimensions)[] = [
-    "structure_pattern",
-    "hook_pattern",
-    "tone_features",
-    "cta_pattern",
-    "format_specs",
-    "high_engagement_features",
-    "taboos",
-  ];
-  for (const key of required) {
+  // Validate only required dimensions
+  for (const key of REQUIRED_DIMENSION_KEYS) {
     if (!parsed[key]) {
       throw new Error(`Missing dimension: ${key}`);
     }
