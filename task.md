@@ -71,6 +71,16 @@
 - [x] 生成 prompt：buildStyleSection 動態帶入所有維度（必填 + 自訂）
 - [x] 驗證：13/13 tests pass + tsc 零錯誤 + dev server 頁面 200
 
+## 功能優化：批改差異萃取風格
+- [x] DB migration 003：contents 表加 original_body 欄位
+- [x] Content type 更新：新增 original_body: string | null
+- [x] 生成 actions：generateContentAction / regenerateSingleAction 同時寫入 original_body
+- [x] 分析 prompt：buildAnalyzeEditPrompt（原始 vs 修改版本 → JSON 風格建議）
+- [x] 分析邏輯：analyzeEditDiff（相同不呼叫 AI、不同回傳 StyleSuggestion[]）
+- [x] Server actions：analyzeEditDiffAction + applyStyleSuggestionsAction
+- [x] Content Editor UI：「分析修改差異」按鈕（標示 AI Token）+ 建議勾選 + 套用 Style DNA
+- [x] 驗證：18/18 tests pass + tsc 零錯誤 + dev server 頁面 200
+
 ## Verification
 - [ ] Upload 40-min Chinese podcast → verify compression + transcription quality
 - [ ] Generate 6-platform content (fixed prompt) → verify format correctness

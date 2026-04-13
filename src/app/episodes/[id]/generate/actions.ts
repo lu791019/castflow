@@ -30,11 +30,12 @@ export async function generateContentAction(episodeId: string) {
     // Delete existing content for this episode
     await supabase.from("contents").delete().eq("episode_id", episodeId);
 
-    // Insert new content
+    // Insert new content (store original_body for diff analysis)
     const inserts = ALL_PLATFORMS.map((platform) => ({
       episode_id: episodeId,
       platform,
       body: results[platform],
+      original_body: results[platform],
       status: "draft",
     }));
 
@@ -84,11 +85,12 @@ export async function regenerateSingleAction(
       .eq("episode_id", episodeId)
       .eq("platform", platform);
 
-    // Insert new
+    // Insert new (store original_body for diff analysis)
     const { error: insertError } = await supabase.from("contents").insert({
       episode_id: episodeId,
       platform,
       body,
+      original_body: body,
       status: "draft",
     });
 
@@ -146,5 +148,57 @@ export async function cancelScheduleAction(contentId: string) {
     .eq("id", contentId);
 
   if (error) return { error: "取消排程失敗" };
+  return { success: true };
+}
+
+export async function analyzeEditDiffAction(contentId: string) {
+  const supabase = createAdminClient();
+
+  const { data: content, error } = await supabase
+    .from("contents")
+    .select("platform, body, original_body")
+    .eq("id", contentId)
+    .single();
+
+  if (error || !content) return { error: "找不到此內容" };
+  if (!content.original_body) return { error: "沒有原始版本可供比對" };
+  if (content.body === content.original_body) return { error: "內容未修改，無差異可分析" };
+
+  try {
+    const { analyzeEditDiff } = await import("@/lib/anthropic/analyze-edit");
+    const suggestions = await analyzeEditDiff(
+      content.platform,
+      content.original_body,
+      content.body,
+    );
+    return { success: true, suggestions };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "分析失敗";
+    return { error: message };
+  }
+}
+
+export async function applyStyleSuggestionsAction(
+  styleDnaId: string,
+  updates: Record<string, string>,
+) {
+  const supabase = createAdminClient();
+
+  const { data: style, error: fetchError } = await supabase
+    .from("style_dnas")
+    .select("dimensions")
+    .eq("id", styleDnaId)
+    .single();
+
+  if (fetchError || !style) return { error: "找不到此風格" };
+
+  const merged = { ...style.dimensions, ...updates };
+
+  const { error: updateError } = await supabase
+    .from("style_dnas")
+    .update({ dimensions: merged })
+    .eq("id", styleDnaId);
+
+  if (updateError) return { error: "更新風格失敗" };
   return { success: true };
 }

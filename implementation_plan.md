@@ -59,6 +59,41 @@
 - 不改 DB schema（JSONB 天然支援）
 - 不加自訂維度排序功能（按插入順序）
 
+---
+
+## 功能優化：批改差異萃取風格
+
+### 目標
+使用者手動修改 AI 生成的文案後，可手動觸發 AI 分析修改差異，萃取風格偏好建議，經使用者確認後套用到 Style DNA。
+
+### 設計決策
+
+**觸發方式：手動按鈕**
+- 使用者點「分析修改差異」按鈕才觸發 AI 分析
+- 按鈕標示「將消耗 AI Token」提醒
+- 理由：避免每次小修改都呼叫 AI
+
+**建議處理：使用者確認**
+- AI 回傳風格建議清單，每條可勾選
+- 使用者選擇後點「套用到 Style DNA」才寫入
+- 理由：保持使用者控制權
+
+**原始版本保留**
+- `contents` 表新增 `original_body text` 欄位
+- 生成/重新生成時同時寫入 `body` + `original_body`
+- 需跑 migration 003
+
+### 改動範圍
+
+| 檔案 | 改動 |
+|------|------|
+| `supabase/migrations/003_content_original_body.sql` | 新增 `original_body` 欄位 |
+| `src/lib/types/index.ts` | `Content` 加 `original_body: string \| null` |
+| `src/app/episodes/[id]/generate/actions.ts` | 生成時寫入 `original_body`；新增 `analyzeEditDiffAction` + `applyStyleSuggestionsAction` |
+| `src/lib/prompts/analyze-edit.ts` | 新檔：`buildAnalyzeEditPrompt` |
+| `src/lib/anthropic/analyze-edit.ts` | 新檔：`analyzeEditDiff` + `StyleSuggestion` type |
+| `src/components/content/content-editor.tsx` | 分析按鈕 + 建議清單 + 勾選套用 UI |
+
 ## Proposed Changes
 
 ### Project Structure

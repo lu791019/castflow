@@ -79,6 +79,7 @@ export interface Content {
   style_dna_id: string | null;
   platform: Platform;
   body: string;
+  original_body: string | null;
   media_urls: string[];
   status: ContentStatus;
   scheduled_at: string | null;
