@@ -50,7 +50,28 @@ export interface StyleDimensions {
   format_specs: string;
   high_engagement_features: string;
   taboos: string;
+  [key: string]: string;
 }
+
+export const REQUIRED_DIMENSION_KEYS = [
+  "structure_pattern",
+  "hook_pattern",
+  "tone_features",
+  "cta_pattern",
+  "format_specs",
+  "high_engagement_features",
+  "taboos",
+] as const;
+
+export const DIMENSION_LABELS: Record<string, string> = {
+  structure_pattern: "結構模式",
+  hook_pattern: "開場 Hook 模式",
+  tone_features: "語氣特徵",
+  cta_pattern: "CTA / 收尾模式",
+  format_specs: "長度 / 格式",
+  high_engagement_features: "高互動特徵",
+  taboos: "禁忌",
+};
 
 export interface Content {
   id: string;
@@ -58,6 +79,7 @@ export interface Content {
   style_dna_id: string | null;
   platform: Platform;
   body: string;
+  original_body: string | null;
   media_urls: string[];
   status: ContentStatus;
   scheduled_at: string | null;

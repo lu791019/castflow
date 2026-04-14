@@ -19,6 +19,7 @@ export default function NewStylePage() {
   const [name, setName] = useState("");
   const [platform, setPlatform] = useState("threads");
   const [examples, setExamples] = useState<Example[]>([{ content: "" }]);
+  const [customDimensions, setCustomDimensions] = useState<string[]>([]);
   const [extracting, setExtracting] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,6 +37,20 @@ export default function NewStylePage() {
     setExamples((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function addCustomDimension() {
+    setCustomDimensions((prev) => [...prev, ""]);
+  }
+
+  function updateCustomDimension(index: number, value: string) {
+    setCustomDimensions((prev) =>
+      prev.map((d, i) => (i === index ? value : d)),
+    );
+  }
+
+  function removeCustomDimension(index: number) {
+    setCustomDimensions((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleExtract() {
     const validExamples = examples.filter((ex) => ex.content.trim());
     if (validExamples.length < 3) {
@@ -46,7 +61,13 @@ export default function NewStylePage() {
     setExtracting(true);
     setError("");
 
-    const result = await createStyleAction(name || `${platform} 風格`, platform, validExamples);
+    const validCustom = customDimensions.filter((d) => d.trim());
+    const result = await createStyleAction(
+      name || `${platform} 風格`,
+      platform,
+      validExamples,
+      validCustom.length > 0 ? validCustom : undefined,
+    );
 
     if (result.error) {
       setError(result.error);
@@ -70,7 +91,7 @@ export default function NewStylePage() {
       <div>
         <h1 className="text-2xl font-bold">建立新風格</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          貼入範例文案，AI 將提取 7 維度風格 DNA
+          貼入範例文案，AI 將提取風格 DNA（7 必填維度 + 自訂維度）
         </p>
       </div>
 
@@ -160,6 +181,36 @@ export default function NewStylePage() {
                 />
               </div>
             </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">自訂維度（選填）</h2>
+          <Button variant="outline" size="sm" onClick={addCustomDimension}>
+            <Plus className="mr-1 h-3 w-3" />
+            新增項目
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          除了 7 個必填維度外，可自訂額外的分析項目（例如：常用句型、開場白模式）
+        </p>
+        {customDimensions.map((dim, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <Input
+              value={dim}
+              onChange={(e) => updateCustomDimension(i, e.target.value)}
+              placeholder="輸入自訂維度名稱，例如「常用句型」"
+              className="flex-1"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeCustomDimension(i)}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
           </div>
         ))}
       </div>

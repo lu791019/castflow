@@ -9,12 +9,15 @@ import {
   scheduleContentAction,
   publishNowAction,
   cancelScheduleAction,
+  analyzeEditDiffAction,
+  applyStyleSuggestionsAction,
 } from "@/app/episodes/[id]/generate/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Loader2, Copy, RefreshCw, Save, Check, Send, Clock, X,
+  Loader2, Copy, RefreshCw, Save, Check, Send, Clock, X, Sparkles,
 } from "lucide-react";
+import type { StyleSuggestion } from "@/lib/anthropic/analyze-edit";
 
 interface ContentEditorProps {
   content: Content;
@@ -39,6 +42,11 @@ export function ContentEditor({
   const [showSchedule, setShowSchedule] = useState(false);
   const [status, setStatus] = useState(content.status);
   const [error, setError] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [suggestions, setSuggestions] = useState<StyleSuggestion[]>([]);
+  const [selectedSuggestions, setSelectedSuggestions] = useState<Set<number>>(new Set());
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
 
   const canPublish = content.platform === "threads" || content.platform === "facebook";
 
@@ -82,6 +90,59 @@ export function ContentEditor({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [body]);
+
+  const handleAnalyzeDiff = useCallback(async () => {
+    setAnalyzing(true);
+    setError("");
+    setSuggestions([]);
+    setSelectedSuggestions(new Set());
+    setApplied(false);
+
+    const result = await analyzeEditDiffAction(content.id);
+    setAnalyzing(false);
+
+    if (result.error) {
+      setError(result.error);
+    } else if (result.suggestions) {
+      setSuggestions(result.suggestions);
+      setSelectedSuggestions(new Set(result.suggestions.map((_, i) => i)));
+    }
+  }, [content.id]);
+
+  const toggleSuggestion = useCallback((index: number) => {
+    setSelectedSuggestions((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  }, []);
+
+  const handleApplySuggestions = useCallback(async () => {
+    if (!content.style_dna_id || selectedSuggestions.size === 0) return;
+
+    setApplying(true);
+    setError("");
+
+    const updates: Record<string, string> = {};
+    for (const idx of selectedSuggestions) {
+      const s = suggestions[idx];
+      updates[s.dimension] = s.suggested;
+    }
+
+    const result = await applyStyleSuggestionsAction(content.style_dna_id, updates);
+    setApplying(false);
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setApplied(true);
+      setTimeout(() => setApplied(false), 3000);
+    }
+  }, [content.style_dna_id, selectedSuggestions, suggestions]);
+
+  const hasOriginal = !!content.original_body;
+  const hasChanges = hasOriginal && body !== content.original_body;
 
   return (
     <div className="space-y-3">
@@ -279,6 +340,94 @@ export function ContentEditor({
         className="min-h-[400px] w-full resize-y rounded-lg border bg-background p-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
         placeholder={`在此編輯 ${spec.name} 文案...`}
       />
+
+      {/* Diff analysis section */}
+      {hasOriginal && (
+        <div className="space-y-3 rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">風格差異分析</h3>
+              <p className="text-xs text-muted-foreground">
+                比對 AI 原稿與你的修改，萃取風格偏好（將消耗 AI Token）
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAnalyzeDiff}
+              disabled={analyzing || !hasChanges}
+            >
+              {analyzing ? (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              ) : (
+                <Sparkles className="mr-1 h-3 w-3" />
+              )}
+              {analyzing ? "分析中..." : "分析修改差異"}
+            </Button>
+          </div>
+
+          {!hasChanges && (
+            <p className="text-xs text-muted-foreground">
+              目前內容與 AI 原稿相同，請先修改文案再分析。
+            </p>
+          )}
+
+          {suggestions.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">
+                以下是 AI 從修改差異中萃取的風格建議，勾選後可套用到 Style DNA：
+              </p>
+              {suggestions.map((s, i) => (
+                <label
+                  key={i}
+                  className="flex items-start gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedSuggestions.has(i)}
+                    onChange={() => toggleSuggestion(i)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 text-sm">
+                    <div className="font-medium">{s.dimension}</div>
+                    <div className="text-muted-foreground mt-1">
+                      <span className="line-through">{s.original}</span>
+                      {" → "}
+                      <span className="text-foreground">{s.suggested}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {s.reason}
+                    </div>
+                  </div>
+                </label>
+              ))}
+
+              {content.style_dna_id ? (
+                <Button
+                  size="sm"
+                  onClick={handleApplySuggestions}
+                  disabled={applying || selectedSuggestions.size === 0}
+                >
+                  {applying ? (
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  ) : applied ? (
+                    <Check className="mr-1 h-3 w-3" />
+                  ) : (
+                    <Sparkles className="mr-1 h-3 w-3" />
+                  )}
+                  {applied
+                    ? "已套用到 Style DNA"
+                    : `套用 ${selectedSuggestions.size} 條建議到 Style DNA`}
+                </Button>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  此內容未關聯 Style DNA，無法自動套用。可手動在風格管理頁新增。
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

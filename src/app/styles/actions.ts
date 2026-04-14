@@ -8,9 +8,10 @@ export async function createStyleAction(
   name: string,
   platform: string,
   examples: { content: string; likes?: number; comments?: number; shares?: number }[],
+  customDimensionNames?: string[],
 ) {
   try {
-    const dimensions = await extractStyleDna(platform, examples);
+    const dimensions = await extractStyleDna(platform, examples, customDimensionNames);
     const supabase = createAdminClient();
 
     // Save examples
